@@ -32,9 +32,10 @@ public final class RecordTransferUseCase {
     }
 
     public FinancialTransaction execute(UUID ownerId, UUID sourceId, UUID destinationId, BigDecimal amount,
-                                        String description, java.time.Instant occurredAt, String idempotencyKey) {
+                                        Currency requestedCurrency, String description, java.time.Instant occurredAt, String idempotencyKey) {
         Objects.requireNonNull(ownerId); requireText(idempotencyKey, "idempotencyKey");
-        String fingerprint = String.join("|", sourceId.toString(), destinationId.toString(), amount.toPlainString(), description, String.valueOf(occurredAt));
+        String fingerprint = String.join("|", sourceId.toString(), destinationId.toString(), amount.toPlainString(),
+                Objects.toString(requestedCurrency, ""), Objects.toString(description, ""), String.valueOf(occurredAt));
         var previous = idempotencyRecords.findByOwnerIdAndKey(ownerId, idempotencyKey.trim());
         if (previous.isPresent()) {
             IdempotencyRecord record = previous.get();
@@ -48,6 +49,7 @@ public final class RecordTransferUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Destination account was not found or is not accessible"));
         Currency currency = source.currency();
         if (!currency.equals(destination.currency())) throw new IllegalArgumentException("Transfer accounts must use the same currency");
+        if (!currency.equals(Objects.requireNonNull(requestedCurrency))) throw new IllegalArgumentException("Currency must match both accounts");
         var now = clock.instant();
         var transaction = postingService.recordTransfer(UUID.randomUUID(), ownerId, sourceId, destinationId, amount,
                 currency, description, occurredAt == null ? now : occurredAt);

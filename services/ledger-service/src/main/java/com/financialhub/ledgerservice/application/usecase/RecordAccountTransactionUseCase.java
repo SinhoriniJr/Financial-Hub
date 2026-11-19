@@ -40,7 +40,7 @@ public final class RecordAccountTransactionUseCase {
     }
 
     public FinancialTransaction execute(UUID ownerId, UUID accountId, FinancialTransaction.TransactionType type,
-            BigDecimal amount, String description, String categoryId, Instant occurredAt, String idempotencyKey) {
+            BigDecimal amount, Currency requestedCurrency, String description, String categoryId, Instant occurredAt, String idempotencyKey) {
         Objects.requireNonNull(ownerId); Objects.requireNonNull(type);
         if (type != FinancialTransaction.TransactionType.INCOME && type != FinancialTransaction.TransactionType.EXPENSE)
             throw new IllegalArgumentException("Only income and expense are supported by this operation");
@@ -57,6 +57,7 @@ public final class RecordAccountTransactionUseCase {
         }
         Currency currency = accounts.findActiveOwnedAccount(accountId, ownerId)
                 .orElseThrow(() -> new IllegalArgumentException("Account was not found or is not accessible")).currency();
+        if (!currency.equals(Objects.requireNonNull(requestedCurrency))) throw new IllegalArgumentException("Currency must match the account");
         if (categoryId != null && !categoryId.isBlank()) {
             TransactionCategory category = categories.findById(UUID.fromString(categoryId.trim()))
                     .filter(TransactionCategory::isActive)

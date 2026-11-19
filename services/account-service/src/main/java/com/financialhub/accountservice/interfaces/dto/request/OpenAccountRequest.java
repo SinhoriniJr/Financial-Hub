@@ -1,3 +1,8 @@
 package com.financialhub.accountservice.interfaces.dto.request;
 
-public record OpenAccountRequest(String name, String type, String currency) { }
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+public record OpenAccountRequest(@NotBlank @Size(max = 80) String name, @NotBlank String type,
+                                 @NotBlank @Pattern(regexp = "^[A-Z]{3}$") String currency) { }
