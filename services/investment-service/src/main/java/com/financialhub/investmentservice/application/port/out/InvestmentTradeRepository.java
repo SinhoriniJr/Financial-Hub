@@ -8,5 +8,6 @@ import java.util.UUID;
 public interface InvestmentTradeRepository {
     InvestmentTrade save(InvestmentTrade trade);
     List<InvestmentTrade> findByOwnerIdAndAccountIdAndExecutedAtBetween(UUID ownerId, UUID accountId, Instant from, Instant to);
+    List<InvestmentTrade> findAllByOwnerIdAndAccountIdAndAssetSymbol(UUID ownerId, UUID accountId, String assetSymbol);
     boolean existsByIdAndOwnerId(UUID tradeId, UUID ownerId);
 }
